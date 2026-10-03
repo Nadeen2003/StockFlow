@@ -174,7 +174,7 @@ const categoryFor = (id) =>
   categories.find((category) => category.id === id)?.name ?? "Uncategorized";
 const productFor = (id) => products.find((product) => product.id === id);
 const productCell = (product) =>
-  `<div class="product-cell"><span class="product-thumb" style="background:${product.color}">${product.icon}</span><span><span class="product-name">${product.name}</span><span class="product-meta">${product.sku}</span></span></div>`;
+  `<div class="product-cell"><span class="product-thumb" style="background:${product.color || "#98d1e8"}">${product.icon || "📦"}</span><span><span class="product-name">${product.name}</span><span class="product-meta">${product.sku}</span></span></div>`;
 const typePill = (type) =>
   `<span class="type-pill ${type === "IN" ? "type-in" : "type-out"}"><i class="type-dot"></i>Stock ${type === "IN" ? "in" : "out"}</span>`;
 
@@ -271,7 +271,7 @@ const modalContent = {
   product: {
     title: "Add product",
     intro: "Add an item to your inventory catalog.",
-    fields: `<div class="field-grid"><div class="field"><label for="productName">Product name</label><input id="productName" placeholder="e.g. Wireless Mouse"></div><div class="field"><label for="productSku">SKU</label><input id="productSku" placeholder="e.g. WM-001"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory"><option>Select category</option>${categories.map((category) => `<option>${category.name}</option>`).join("")}</select></div><div class="field"><label for="productPrice">Unit price</label><input id="productPrice" type="number" placeholder="0.00"></div><div class="field"><label for="productQuantity">Opening quantity</label><input id="productQuantity" type="number" placeholder="0"></div><div class="field full"><label for="productDescription">Description <span style="font-weight:400;color:#9ba5b4">(optional)</span></label><textarea id="productDescription" placeholder="A short product description"></textarea></div></div>`,
+    fields: `<div class="field-grid"><div class="field"><label for="productName">Product name</label><input id="productName" placeholder="e.g. Wireless Mouse"></div><div class="field"><label for="productSku">SKU</label><input id="productSku" placeholder="e.g. WM-001"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory"><option>Select category</option>${categories.map((category) => `<option value="${category.id}">${category.name}</option>`).join("")}</select></div><div class="field"><label for="productPrice">Unit price</label><input id="productPrice" type="number" placeholder="0.00"></div><div class="field"><label for="productQuantity">Opening quantity</label><input id="productQuantity" type="number" placeholder="0"></div><div class="field full"><label for="productDescription">Description <span style="font-weight:400;color:#9ba5b4">(optional)</span></label><textarea id="productDescription" placeholder="A short product description"></textarea></div></div>`,
   },
   category: {
     title: "Add category",
@@ -290,9 +290,11 @@ function closeModal() {
   backdrop.classList.remove("open");
   backdrop.setAttribute("aria-hidden", "true");
 }
+let activeFormType;
 document.querySelectorAll("[data-modal]").forEach((button) =>
   button.addEventListener("click", () => {
     const content = modalContent[button.dataset.modal];
+    activeFormType = button.dataset.modal;
     document.querySelector("#modalTitle").textContent = content.title;
     document.querySelector("#modalIntro").textContent = content.intro;
     document.querySelector("#modalFields").innerHTML = content.fields;
@@ -313,6 +315,22 @@ document.addEventListener("keydown", (event) => {
 let toastTimer;
 document.querySelector("#previewForm").addEventListener("submit", (event) => {
   event.preventDefault();
+  switch (activeFormType) {
+    case "product":
+      const data = {
+        id : products.length + 1,
+        name : document.querySelector("#productName").value,
+        sku : document.querySelector("#productSku").value,
+        categoryId : Number(document.querySelector("#productCategory").value),
+        price : Number(document.querySelector("#productPrice").value),
+        quantity : Number(document.querySelector("#productQuantity").value),
+        description : document.querySelector("#productDescription").value,
+      }
+
+      products.push(data);
+      renderProducts();
+      break;
+  }
   closeModal();
   const toast = document.querySelector("#toast");
   toast.classList.add("show");
