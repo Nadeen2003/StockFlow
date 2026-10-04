@@ -271,7 +271,7 @@ const modalContent = {
   product: {
     title: "Add product",
     intro: "Add an item to your inventory catalog.",
-    fields: `<div class="field-grid"><div class="field"><label for="productName">Product name</label><input id="productName" placeholder="e.g. Wireless Mouse"></div><div class="field"><label for="productSku">SKU</label><input id="productSku" placeholder="e.g. WM-001"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory"><option>Select category</option>${categories.map((category) => `<option value="${category.id}">${category.name}</option>`).join("")}</select></div><div class="field"><label for="productPrice">Unit price</label><input id="productPrice" type="number" placeholder="0.00"></div><div class="field"><label for="productQuantity">Opening quantity</label><input id="productQuantity" type="number" placeholder="0"></div><div class="field full"><label for="productDescription">Description <span style="font-weight:400;color:#9ba5b4">(optional)</span></label><textarea id="productDescription" placeholder="A short product description"></textarea></div></div>`,
+    fields: `<div class="field-grid"><div class="field"><label for="productName">Product name</label><input id="productName" placeholder="e.g. Wireless Mouse"></div><div class="field"><label for="productSku">SKU</label><input id="productSku" placeholder="e.g. WM-001"></div><div class="field"><label for="productCategory">Category</label><select id="productCategory"><option value="">Select category</option>${categories.map((category) => `<option value="${category.id}">${category.name}</option>`).join("")}</select></div><div class="field"><label for="productPrice">Unit price</label><input id="productPrice" type="number" placeholder="0.00"></div><div class="field"><label for="productQuantity">Opening quantity</label><input id="productQuantity" type="number" placeholder="0"></div><div class="field full"><label for="productDescription">Description <span style="font-weight:400;color:#9ba5b4">(optional)</span></label><textarea id="productDescription" placeholder="A short product description"></textarea></div></div>`,
   },
   category: {
     title: "Add category",
@@ -298,6 +298,8 @@ document.querySelectorAll("[data-modal]").forEach((button) =>
     document.querySelector("#modalTitle").textContent = content.title;
     document.querySelector("#modalIntro").textContent = content.intro;
     document.querySelector("#modalFields").innerHTML = content.fields;
+    document.querySelector('.form-message').classList.remove('error');
+    document.querySelector('.form-message').style.display = 'none';
     backdrop.classList.add("open");
     backdrop.setAttribute("aria-hidden", "false");
   }),
@@ -326,10 +328,37 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
         quantity : Number(document.querySelector("#productQuantity").value),
         description : document.querySelector("#productDescription").value,
       }
-
-      products.push(data);
-      renderProducts();
-      break;
+      const errors = [];
+      if(data.name.trim() === ''){
+        errors.push("Product name is required.");
+        // document.querySelector('.form-message').classList.add('error');
+        // document.querySelector('.form-message').style.display = 'block';
+        // document.querySelector('.form-message').textContent = "Product name is required.";
+        // return;
+      } 
+      if(data.sku.trim() === ''){
+        errors.push("SKU is required.");
+      } 
+      if(document.querySelector("#productCategory").value.trim() === ''){
+        errors.push("Category is required.");
+      } 
+      if(document.querySelector("#productPrice").value.trim() === ''){
+        errors.push("Price is required.");
+      } 
+      if(document.querySelector("#productQuantity").value.trim() === ''){
+        errors.push("Quantity is required.");
+      } 
+      if (errors.length > 0) {
+        document.querySelector('.form-message').classList.add('error');
+        document.querySelector('.form-message').style.display = 'block';
+        document.querySelector('.form-message').textContent = errors.join(' ');
+        return;
+      }
+      else{
+        products.push(data);
+        renderProducts();
+        break;
+      }
   }
   closeModal();
   const toast = document.querySelector("#toast");
