@@ -348,6 +348,21 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
       if(document.querySelector("#productQuantity").value.trim() === ''){
         errors.push("Quantity is required.");
       } 
+      if(data.quantity < 0){
+        errors.push("Quantity should be greater than or equal to 0.");
+      } 
+      if(data.price < 0){
+        errors.push("Price should be greater than or equal to 0.");
+      } 
+      if(!Number.isInteger(data.quantity)){
+        errors.push("Quantity should be an Integer Number.");
+      } 
+      const skuAlreadyExists = products.some(
+        (product) => product.sku.toLowerCase().trim() === data.sku.toLowerCase().trim()
+      );
+      if (skuAlreadyExists) {
+        errors.push("SKU should be unique.");
+      }
       if (errors.length > 0) {
         document.querySelector('.form-message').classList.add('error');
         document.querySelector('.form-message').style.display = 'block';
@@ -355,7 +370,9 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
         return;
       }
       else{
-        products.push(data);
+        data.name = data.name.trim();
+        data.sku = data.sku.trim();
+        products.push(data);  
         renderProducts();
         break;
       }
