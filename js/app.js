@@ -50,6 +50,15 @@ const categories = [
   },
 ];
 
+const categoryFilter = document.querySelector("#productCategoryFilter");
+
+categoryFilter.insertAdjacentHTML(
+"beforeend",
+  categories
+    .map((category) => `<option value="${category.id}">${category.name}</option>`)
+    .join("")
+);
+
 const products = [
   {
     id: 1,
@@ -199,10 +208,12 @@ function renderDashboard() {
 
 function renderProducts() {
   const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
+  const selectedCategoryId = document.querySelector("#productCategoryFilter").value;
   const filteredProducts = products.filter((product) => {
     const matchesName = product.name.toLowerCase().includes(searchTerm);
     const matchesSku = product.sku.toLowerCase().includes(searchTerm);
-    return matchesName || matchesSku;
+    const matchesCategory = selectedCategoryId === "" || product.categoryId === Number(selectedCategoryId);
+    return (matchesName || matchesSku) && matchesCategory;
   });
 
   document.querySelector("#productRows").innerHTML = filteredProducts
@@ -268,6 +279,7 @@ function renderProducts() {
 }
 
 document.querySelector("#productSearch").addEventListener("input", renderProducts);
+categoryFilter.addEventListener("change", renderProducts);
 
 function renderTransactions() {
   document.querySelector("#transactionRows").innerHTML = transactions
