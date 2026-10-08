@@ -201,9 +201,42 @@ function renderProducts() {
   document.querySelector("#productRows").innerHTML = products
     .map(
       (product) => `
-    <tr><td>${productCell(product)}</td><td>${product.sku}</td><td>${categoryFor(product.categoryId)}</td><td><span class="stock-cell"><i class="stock-indicator ${product.quantity <= 2 ? "out" : product.quantity <= 5 ? "low" : ""}"></i><span class="stock-number">${product.quantity}</span> units</span></td><td>$${product.price.toFixed(2)}</td><td><button class="row-actions" aria-label="Product actions" data-edit-product="${product.id}">···</button></td></tr>`,
-    )
+    <tr><td>${productCell(product)}</td><td>${product.sku}</td><td>${categoryFor(product.categoryId)}</td><td><span class="stock-cell"><i class="stock-indicator ${product.quantity <= 2 ? "out" : product.quantity <= 5 ? "low" : ""}"></i><span class="stock-number">${product.quantity}</span> units</span></td><td>$${product.price.toFixed(2)}</td><td><div class="product-actions"><button class="row-actions" aria-label="Product actions" data-toggle-actions="${product.id}">···</button>
+    <div class="actions-menu" hidden><button data-edit-product="${product.id}">Edit</button><button data-delete-product="${product.id}">Delete</button></div></div>
+    </td></tr>`,
+  )
     .join("");
+
+  document.querySelectorAll("[data-toggle-actions]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const menu = button.nextElementSibling;
+      menu.hidden = !menu.hidden;
+    });
+  });
+  document.querySelectorAll("[data-delete-product]").forEach((button) => {
+    button.addEventListener("click", () => {
+      deletingProductId = Number(button.dataset.deleteProduct);
+      activeFormType = "deleteProduct";
+
+      document.querySelector("#modalTitle").textContent = "Delete product?";
+      document.querySelector("#modalIntro").textContent =
+        "Are you sure you want to delete this product?";
+      document.querySelector("#modalFields").innerHTML =
+        "<p>This action cannot be undone.</p>";
+
+      const formMessage = document.querySelector(".form-message");
+      formMessage.textContent = "";
+      formMessage.classList.remove("error");
+      formMessage.style.display = "none";
+
+      document.querySelector(
+        '#previewForm button[type="submit"]'
+      ).innerHTML = 'Delete <span>→</span>';
+
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+    });
+  });
 
   document.querySelectorAll("[data-edit-product]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -214,6 +247,7 @@ function renderProducts() {
       document.querySelector("#modalTitle").textContent = "Edit product";
       document.querySelector("#modalIntro").textContent = "Update the product details.";
       document.querySelector("#modalFields").innerHTML = modalContent.product.fields;
+      document.querySelector('#previewForm button[type="submit"]').innerHTML = 'Save <span>→</span>';
       document.querySelector("#productName").value = product.name;
       document.querySelector("#productSku").value = product.sku;  
       document.querySelector("#productCategory").value = product.categoryId;
@@ -313,6 +347,8 @@ function closeModal() {
 }
 let activeFormType;
 let editingProductId;
+let deletingProductId;
+
 document.querySelectorAll("[data-modal]").forEach((button) =>
   button.addEventListener("click", () => {
     const content = modalContent[button.dataset.modal];
@@ -320,6 +356,7 @@ document.querySelectorAll("[data-modal]").forEach((button) =>
     document.querySelector("#modalTitle").textContent = content.title;
     document.querySelector("#modalIntro").textContent = content.intro;
     document.querySelector("#modalFields").innerHTML = content.fields;
+    document.querySelector('#previewForm button[type="submit"]').innerHTML = 'Save <span>→</span>';
     document.querySelector('.form-message').classList.remove('error');
     document.querySelector('.form-message').style.display = 'none';
     backdrop.classList.add("open");
@@ -425,9 +462,20 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
 
       renderProducts();
       break;
-    }    
+    } 
+    
+    case "deleteProduct": {
+      const productIndex = products.findIndex(
+        (product) => product.id === deletingProductId
+      );
+      if (productIndex !== -1) {
+        products.splice(productIndex, 1);
+      }
+      renderProducts();
+      break;
+    }
   }
-  
+
   closeModal();
   const toast = document.querySelector("#toast");
   toast.classList.add("show");
