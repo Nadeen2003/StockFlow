@@ -198,7 +198,14 @@ function renderDashboard() {
 }
 
 function renderProducts() {
-  document.querySelector("#productRows").innerHTML = products
+  const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
+  const filteredProducts = products.filter((product) => {
+    const matchesName = product.name.toLowerCase().includes(searchTerm);
+    const matchesSku = product.sku.toLowerCase().includes(searchTerm);
+    return matchesName || matchesSku;
+  });
+
+  document.querySelector("#productRows").innerHTML = filteredProducts
     .map(
       (product) => `
     <tr><td>${productCell(product)}</td><td>${product.sku}</td><td>${categoryFor(product.categoryId)}</td><td><span class="stock-cell"><i class="stock-indicator ${product.quantity <= 2 ? "out" : product.quantity <= 5 ? "low" : ""}"></i><span class="stock-number">${product.quantity}</span> units</span></td><td>$${product.price.toFixed(2)}</td><td><div class="product-actions"><button class="row-actions" aria-label="Product actions" data-toggle-actions="${product.id}">···</button>
@@ -259,6 +266,8 @@ function renderProducts() {
     });
   });
 }
+
+document.querySelector("#productSearch").addEventListener("input", renderProducts);
 
 function renderTransactions() {
   document.querySelector("#transactionRows").innerHTML = transactions
