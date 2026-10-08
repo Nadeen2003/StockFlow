@@ -194,15 +194,36 @@ function renderDashboard() {
     <div class="low-item"><span class="product-thumb" style="background:${product.color}">${product.icon}</span><div class="low-product"><strong>${product.name}</strong><span>${product.sku}</span><div class="stock-track"><i style="width:${Math.max(product.quantity * 8, 8)}%"></i></div></div><div class="low-qty"><strong>${product.quantity} left</strong><span>Low stock</span></div></div>`,
     )
     .join("");
+    
 }
 
 function renderProducts() {
   document.querySelector("#productRows").innerHTML = products
     .map(
       (product) => `
-    <tr><td>${productCell(product)}</td><td>${product.sku}</td><td>${categoryFor(product.categoryId)}</td><td><span class="stock-cell"><i class="stock-indicator ${product.quantity <= 2 ? "out" : product.quantity <= 5 ? "low" : ""}"></i><span class="stock-number">${product.quantity}</span> units</span></td><td>$${product.price.toFixed(2)}</td><td><button class="row-actions" aria-label="Product actions">···</button></td></tr>`,
+    <tr><td>${productCell(product)}</td><td>${product.sku}</td><td>${categoryFor(product.categoryId)}</td><td><span class="stock-cell"><i class="stock-indicator ${product.quantity <= 2 ? "out" : product.quantity <= 5 ? "low" : ""}"></i><span class="stock-number">${product.quantity}</span> units</span></td><td>$${product.price.toFixed(2)}</td><td><button class="row-actions" aria-label="Product actions" data-edit-product="${product.id}">···</button></td></tr>`,
     )
     .join("");
+
+  document.querySelectorAll("[data-edit-product]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const productId = Number(button.dataset.editProduct);
+      editingProductId = productId;
+      const product = products.find((product) => product.id === productId);
+      activeFormType = "editProduct";
+      document.querySelector("#modalTitle").textContent = "Edit product";
+      document.querySelector("#modalIntro").textContent = "Update the product details.";
+      document.querySelector("#modalFields").innerHTML = modalContent.product.fields;
+      document.querySelector("#productName").value = product.name;
+      document.querySelector("#productSku").value = product.sku;  
+      document.querySelector("#productCategory").value = product.categoryId;
+      document.querySelector("#productPrice").value = product.price;
+      document.querySelector("#productQuantity").value = product.quantity;
+      document.querySelector("#productDescription").value = product.description ?? "";
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+    });
+  });
 }
 
 function renderTransactions() {
@@ -291,6 +312,7 @@ function closeModal() {
   backdrop.setAttribute("aria-hidden", "true");
 }
 let activeFormType;
+let editingProductId;
 document.querySelectorAll("[data-modal]").forEach((button) =>
   button.addEventListener("click", () => {
     const content = modalContent[button.dataset.modal];
@@ -318,65 +340,94 @@ let toastTimer;
 document.querySelector("#previewForm").addEventListener("submit", (event) => {
   event.preventDefault();
   switch (activeFormType) {
-    case "product":
+    case "editProduct":
+    case "product": {
       const data = {
-        id : products.length + 1,
-        name : document.querySelector("#productName").value,
-        sku : document.querySelector("#productSku").value,
-        categoryId : Number(document.querySelector("#productCategory").value),
-        price : Number(document.querySelector("#productPrice").value),
-        quantity : Number(document.querySelector("#productQuantity").value),
-        description : document.querySelector("#productDescription").value,
-      }
+        id:
+          activeFormType === "editProduct"
+            ? editingProductId
+            : products.length + 1,
+        name: document.querySelector("#productName").value,
+        sku: document.querySelector("#productSku").value,
+        categoryId: Number(
+          document.querySelector("#productCategory").value
+        ),
+        price: Number(document.querySelector("#productPrice").value),
+        quantity: Number(document.querySelector("#productQuantity").value),
+        description: document.querySelector("#productDescription").value,
+      };
+
       const errors = [];
-      if(data.name.trim() === ''){
+
+      if (data.name.trim() === "") {
         errors.push("Product name is required.");
-        // document.querySelector('.form-message').classList.add('error');
-        // document.querySelector('.form-message').style.display = 'block';
-        // document.querySelector('.form-message').textContent = "Product name is required.";
-        // return;
-      } 
-      if(data.sku.trim() === ''){
+      }
+
+      if (data.sku.trim() === "") {
         errors.push("SKU is required.");
-      } 
-      if(document.querySelector("#productCategory").value.trim() === ''){
+      }
+
+      if (document.querySelector("#productCategory").value.trim() === "") {
         errors.push("Category is required.");
-      } 
-      if(document.querySelector("#productPrice").value.trim() === ''){
+      }
+
+      if (document.querySelector("#productPrice").value.trim() === "") {
         errors.push("Price is required.");
-      } 
-      if(document.querySelector("#productQuantity").value.trim() === ''){
+      }
+
+      if (document.querySelector("#productQuantity").value.trim() === "") {
         errors.push("Quantity is required.");
-      } 
-      if(data.quantity < 0){
+      }
+
+      if (data.quantity < 0) {
         errors.push("Quantity should be greater than or equal to 0.");
-      } 
-      if(data.price < 0){
+      }
+
+      if (data.price < 0) {
         errors.push("Price should be greater than or equal to 0.");
-      } 
-      if(!Number.isInteger(data.quantity)){
-        errors.push("Quantity should be an Integer Number.");
-      } 
-      const skuAlreadyExists = products.some(
-        (product) => product.sku.toLowerCase().trim() === data.sku.toLowerCase().trim()
-      );
+      }
+
+      if (!Number.isInteger(data.quantity)) {
+        errors.push("Quantity should be an integer.");
+      }
+
+      const skuAlreadyExists = products.some((product) => {
+        if (activeFormType === "editProduct" && product.id === editingProductId) {
+          return false;
+        }
+
+        return (product.sku.trim().toLowerCase() === data.sku.trim().toLowerCase());
+      });
+
       if (skuAlreadyExists) {
         errors.push("SKU should be unique.");
       }
+
       if (errors.length > 0) {
-        document.querySelector('.form-message').classList.add('error');
-        document.querySelector('.form-message').style.display = 'block';
-        document.querySelector('.form-message').textContent = errors.join(' ');
+        const formMessage = document.querySelector(".form-message");
+        formMessage.classList.add("error");
+        formMessage.style.display = "block";
+        formMessage.textContent = errors.join(" ");
         return;
       }
-      else{
-        data.name = data.name.trim();
-        data.sku = data.sku.trim();
-        products.push(data);  
-        renderProducts();
-        break;
+
+      data.name = data.name.trim();
+      data.sku = data.sku.trim();
+
+      if (activeFormType === "editProduct") {
+        const productIndex = products.findIndex(
+          (product) => product.id === editingProductId
+        );
+        products[productIndex] = data;
+      } else {
+        products.push(data);
       }
+
+      renderProducts();
+      break;
+    }    
   }
+  
   closeModal();
   const toast = document.querySelector("#toast");
   toast.classList.add("show");
