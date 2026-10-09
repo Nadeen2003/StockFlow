@@ -187,6 +187,8 @@ const productCell = (product) =>
 const typePill = (type) =>
   `<span class="type-pill ${type === "IN" ? "type-in" : "type-out"}"><i class="type-dot"></i>Stock ${type === "IN" ? "in" : "out"}</span>`;
 
+let sortDirection = 0;
+
 function renderDashboard() {
   document.querySelector("#recentRows").innerHTML = transactions
     .slice(0, 4)
@@ -215,7 +217,9 @@ function renderProducts() {
     const matchesCategory = selectedCategoryId === "" || product.categoryId === Number(selectedCategoryId);
     return (matchesName || matchesSku) && matchesCategory;
   });
-
+  filteredProducts.sort((productA, productB) => {
+    return productA.name.localeCompare(productB.name) * sortDirection;
+  });
   document.querySelector("#productRows").innerHTML = filteredProducts
     .map(
       (product) => `
@@ -279,7 +283,17 @@ function renderProducts() {
 }
 
 document.querySelector("#productSearch").addEventListener("input", renderProducts);
+
 categoryFilter.addEventListener("change", renderProducts);
+
+document.querySelector("#productSortButton").addEventListener("click", () => {
+  if(sortDirection === 1) {
+    sortDirection = -1;
+  }else{
+    sortDirection = 1;
+  }
+  renderProducts();
+});
 
 function renderTransactions() {
   document.querySelector("#transactionRows").innerHTML = transactions
