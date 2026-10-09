@@ -188,6 +188,8 @@ const typePill = (type) =>
   `<span class="type-pill ${type === "IN" ? "type-in" : "type-out"}"><i class="type-dot"></i>Stock ${type === "IN" ? "in" : "out"}</span>`;
 
 let sortDirection = 0;
+let currentPage = 1;
+const productsPerPage = 6;
 
 function renderDashboard() {
   document.querySelector("#recentRows").innerHTML = transactions
@@ -220,7 +222,29 @@ function renderProducts() {
   filteredProducts.sort((productA, productB) => {
     return productA.name.localeCompare(productB.name) * sortDirection;
   });
-  document.querySelector("#productRows").innerHTML = filteredProducts
+  const totalPages = Math.max(1,Math.ceil(filteredProducts.length / productsPerPage));
+  if (currentPage > totalPages) {
+    currentPage = totalPages;
+  }
+
+  renderPagination(totalPages);
+
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const visibleProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
+
+  const showingStart =filteredProducts.length === 0 ? 0 : startIndex + 1;
+  const showingEnd = startIndex + visibleProducts.length;
+  document.querySelector("#showingStart").textContent = showingStart;
+  document.querySelector("#showingEnd").textContent = showingEnd;
+  document.querySelector("#totalProducts").textContent = filteredProducts.length;
+
+  const productRows = document.querySelector("#productRows");
+  if (visibleProducts.length === 0) {
+    productRows.innerHTML = '<tr><td colspan="6">No products found.</td></tr>';
+    return;
+  }
+
+  productRows.innerHTML = visibleProducts
     .map(
       (product) => `
     <tr><td>${productCell(product)}</td><td>${product.sku}</td><td>${categoryFor(product.categoryId)}</td><td><span class="stock-cell"><i class="stock-indicator ${product.quantity <= 2 ? "out" : product.quantity <= 5 ? "low" : ""}"></i><span class="stock-number">${product.quantity}</span> units</span></td><td>$${product.price.toFixed(2)}</td><td><div class="product-actions"><button class="row-actions" aria-label="Product actions" data-toggle-actions="${product.id}">···</button>
@@ -278,6 +302,36 @@ function renderProducts() {
       document.querySelector("#productDescription").value = product.description ?? "";
       backdrop.classList.add("open");
       backdrop.setAttribute("aria-hidden", "false");
+    });
+  });
+}
+
+function renderPagination(totalPages) {
+  const pagination = document.querySelector("#productPagination");
+
+  let buttons = `
+    <button data-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""}>←</button>
+  `;
+
+  for (let page = 1; page <= totalPages; page++) {
+    buttons += `
+      <button
+        data-page="${page}"
+        class="${page === currentPage ? "current" : ""}"
+      >${page}</button>
+    `;
+  }
+
+  buttons += `
+    <button data-page="${currentPage + 1}" ${currentPage === totalPages ? "disabled" : ""}>→</button>
+  `;
+
+  pagination.innerHTML = buttons;
+
+  pagination.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentPage = Number(button.dataset.page);
+      renderProducts();
     });
   });
 }
