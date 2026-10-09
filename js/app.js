@@ -211,6 +211,7 @@ function renderDashboard() {
 }
 
 function renderProducts() {
+  document.querySelector("#productNavCount").textContent = products.length;
   const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
   const selectedCategoryId = document.querySelector("#productCategoryFilter").value;
   const filteredProducts = products.filter((product) => {
