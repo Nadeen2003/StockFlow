@@ -192,6 +192,7 @@ let currentPage = 1;
 const productsPerPage = 6;
 
 function renderDashboard() {
+  document.querySelector("#dashboardTotalProducts").textContent = products.length;
   document.querySelector("#recentRows").innerHTML = transactions
     .slice(0, 4)
     .map((transaction) => {
@@ -212,6 +213,7 @@ function renderDashboard() {
 
 function renderProducts() {
   document.querySelector("#productNavCount").textContent = products.length;
+  document.querySelector("#dashboardTotalProducts").textContent = products.length;
   const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
   const selectedCategoryId = document.querySelector("#productCategoryFilter").value;
   const filteredProducts = products.filter((product) => {
