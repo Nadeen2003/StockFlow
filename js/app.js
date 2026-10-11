@@ -201,14 +201,17 @@ function renderDashboard() {
     })
     .join("");
 
+    
+  }
+  
+function renderLowStockList() {
   document.querySelector("#lowStockList").innerHTML = products
     .filter((product) => product.quantity <= 5)
     .map(
       (product) => `
-    <div class="low-item"><span class="product-thumb" style="background:${product.color}">${product.icon}</span><div class="low-product"><strong>${product.name}</strong><span>${product.sku}</span><div class="stock-track"><i style="width:${Math.max(product.quantity * 8, 8)}%"></i></div></div><div class="low-qty"><strong>${product.quantity} left</strong><span>Low stock</span></div></div>`,
+      <div class="low-item"><span class="product-thumb" style="background:${product.color || "#98d1e8"}">${product.icon || "📦"}</span><div class="low-product"><strong>${product.name}</strong><span>${product.sku}</span><div class="stock-track"><i style="width:${Math.max(product.quantity * 8, 8)}%"></i></div></div><div class="low-qty"><strong>${product.quantity} left</strong><span>Low stock</span></div></div>`,
     )
     .join("");
-    
 }
 
 function renderProducts() {
@@ -224,6 +227,8 @@ function renderProducts() {
   const [wholeValue, centsValue] = totalInventoryValue.toFixed(2).split(".");
   document.querySelector("#dashboardInventoryWhole").textContent = Number(wholeValue).toLocaleString("en-US");
   document.querySelector("#dashboardInventoryCents").textContent = `.${centsValue}`;
+  document.querySelector("#lowStockCountPill").textContent = `${lowStockCount} items`;
+  renderLowStockList();
   const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
   const selectedCategoryId = document.querySelector("#productCategoryFilter").value;
   const filteredProducts = products.filter((product) => {
