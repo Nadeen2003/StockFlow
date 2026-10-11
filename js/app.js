@@ -214,6 +214,16 @@ function renderDashboard() {
 function renderProducts() {
   document.querySelector("#productNavCount").textContent = products.length;
   document.querySelector("#dashboardTotalProducts").textContent = products.length;
+  const totalStock = products.reduce((sum , product) => sum + product.quantity, 0);
+  document.querySelector("#dashboardTotalStock").textContent = totalStock;
+  const lowStockCount = products.filter(
+    (product) => product.quantity <= 5
+  ).length;
+  document.querySelector("#dashboardLowStockCount").textContent = lowStockCount;
+  const totalInventoryValue = products.reduce((sum, product) => sum + product.price * product.quantity, 0);
+  const [wholeValue, centsValue] = totalInventoryValue.toFixed(2).split(".");
+  document.querySelector("#dashboardInventoryWhole").textContent = Number(wholeValue).toLocaleString("en-US");
+  document.querySelector("#dashboardInventoryCents").textContent = `.${centsValue}`;
   const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
   const selectedCategoryId = document.querySelector("#productCategoryFilter").value;
   const filteredProducts = products.filter((product) => {

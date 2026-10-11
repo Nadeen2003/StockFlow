@@ -112,7 +112,10 @@
                   <span>Total stock quantity</span
                   ><span class="stat-icon blue">▤</span>
                 </div>
-                <div class="stat-value">1,284 <small>units</small></div>
+                <div class="stat-value">
+                  <span id="dashboardTotalStock">1,284</span>
+                  <small>units</small>
+                </div>
                 <div class="stat-foot">
                   <span class="trend up">↗ 8.2%</span
                   ><span>from last month</span>
@@ -124,7 +127,11 @@
                   ><span class="stat-icon green">＄</span>
                 </div>
                 <div class="stat-value">
-                  $18,420<span class="decimal">.00</span>
+                  $<span id="dashboardInventoryWhole">18,420</span><span
+                    class="decimal"
+                    id="dashboardInventoryCents"
+                    >.00</span
+                  >
                 </div>
                 <div class="stat-foot">
                   <span class="trend up">↗ 4.6%</span
@@ -136,7 +143,7 @@
                   <span>Low stock items</span
                   ><span class="stat-icon amber">⚠</span>
                 </div>
-                <div class="stat-value">03</div>
+                <div class="stat-value" id="dashboardLowStockCount">03</div>
                 <div class="stat-foot">
                   <span class="trend neutral">Needs attention</span
                   ><span>at or below 5 units</span>
