@@ -311,6 +311,13 @@ function renderProducts() {
       document.querySelector("#modalTitle").textContent = "Edit product";
       document.querySelector("#modalIntro").textContent = "Update the product details.";
       document.querySelector("#modalFields").innerHTML = modalContent.product.fields;
+      const categorySelect = document.querySelector("#productCategory");
+      categorySelect.innerHTML = `
+        <option value="">Select category</option>
+        ${categories
+          .map((category) => `<option value="${category.id}">${category.name}</option>`)
+          .join("")}
+      `;
       document.querySelector('#previewForm button[type="submit"]').innerHTML = 'Save <span>→</span>';
       document.querySelector("#productName").value = product.name;
       document.querySelector("#productSku").value = product.sku;  
@@ -377,12 +384,73 @@ function renderTransactions() {
 }
 
 function renderCategories() {
+  const categoryWord = categories.length === 1 ? "category" : "categories";
+  document.querySelector("#categoryCount").textContent = `${categories.length} ${categoryWord} in your catalog`;
   document.querySelector("#categoryGrid").innerHTML = categories
     .map(
       (category) => `
-    <article class="category-card"><div class="category-top"><span class="category-symbol" style="color:${category.ink};background:${category.color}">${category.icon}</span><button class="category-actions" aria-label="Category actions">···</button></div><h3>${category.name}</h3><p>${category.count} products</p></article>`,
+    <article class="category-card"><div class="category-top"><span class="category-symbol" style="color:${category.ink};background:${category.color}">${category.icon}</span><div class="product-actions"><button class="category-actions" aria-label="Category actions" data-toggle-category-actions="${category.id}">···</button><div class="actions-menu" hidden><button data-edit-category="${category.id}">Edit</button><button data-delete-category="${category.id}">Delete</button></div></div></div><h3>${category.name}</h3><p>${products.filter((product) => product.categoryId === category.id).length} products</p></article>`,
     )
     .join("");
+
+  document.querySelectorAll("[data-toggle-category-actions]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const menu = button.nextElementSibling;
+      menu.hidden = !menu.hidden;
+    });
+  });
+
+  document.querySelectorAll("[data-edit-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const categoryId = Number(button.dataset.editCategory);
+      const category = categories.find(
+        (category) => category.id === categoryId
+      );
+
+      editingCategoryId = category.id;
+      activeFormType = "editCategory";
+
+      document.querySelector("#modalTitle").textContent = "Edit category";
+      document.querySelector("#modalIntro").textContent = "Update the category details.";
+      document.querySelector("#modalFields").innerHTML = modalContent.category.fields;
+      document.querySelector("#categoryName").value = category.name;
+      document.querySelector("#categoryDescription").value = category.description ?? "";
+      document.querySelector('#previewForm button[type="submit"]').innerHTML = 'Save <span>→</span>';
+
+      const formMessage = document.querySelector(".form-message");
+      formMessage.textContent = "";
+      formMessage.classList.remove("error");
+      formMessage.style.display = "none";
+
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+    });
+  });
+
+  document.querySelectorAll("[data-delete-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      deletingCategoryId = Number(button.dataset.deleteCategory);
+
+      const category = categories.find(
+        (category) => category.id === deletingCategoryId
+      );
+
+      activeFormType = "deleteCategory";
+      document.querySelector("#modalTitle").textContent = "Delete category?";
+      document.querySelector("#modalIntro").textContent = `Are you sure you want to delete ${category.name}?`;
+      document.querySelector("#modalFields").innerHTML = "<p>This action cannot be undone.</p>";
+
+      document.querySelector('#previewForm button[type="submit"]').innerHTML = 'Delete <span>→</span>';
+
+      const formMessage = document.querySelector(".form-message");
+      formMessage.textContent = "";
+      formMessage.classList.remove("error");
+      formMessage.style.display = "none";
+
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+    });
+  });
 }
 
 renderDashboard();
@@ -455,6 +523,8 @@ function closeModal() {
 let activeFormType;
 let editingProductId;
 let deletingProductId;
+let editingCategoryId;
+let deletingCategoryId;
 
 document.querySelectorAll("[data-modal]").forEach((button) =>
   button.addEventListener("click", () => {
@@ -463,6 +533,15 @@ document.querySelectorAll("[data-modal]").forEach((button) =>
     document.querySelector("#modalTitle").textContent = content.title;
     document.querySelector("#modalIntro").textContent = content.intro;
     document.querySelector("#modalFields").innerHTML = content.fields;
+    if (button.dataset.modal === "product") {
+    const categorySelect = document.querySelector("#productCategory");
+    categorySelect.innerHTML = `
+      <option value="">Select category</option>
+      ${categories
+        .map((category) => `<option value="${category.id}">${category.name}</option>`)
+        .join("")}
+    `;
+    }
     document.querySelector('#previewForm button[type="submit"]').innerHTML = 'Save <span>→</span>';
     document.querySelector('.form-message').classList.remove('error');
     document.querySelector('.form-message').style.display = 'none';
@@ -568,6 +647,7 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
       }
 
       renderProducts();
+      renderCategories();
       break;
     } 
     
@@ -579,6 +659,130 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
         products.splice(productIndex, 1);
       }
       renderProducts();
+      renderCategories();
+      break;
+    }
+
+    case "deleteCategory": {
+      const categoryHasProducts = products.some(
+        (product) => product.categoryId === deletingCategoryId
+      );
+
+      if (categoryHasProducts) {
+        const formMessage = document.querySelector(".form-message");
+        formMessage.classList.add("error");
+        formMessage.style.display = "block";
+        formMessage.textContent =
+          "Move this category's products before deleting it.";
+        return;
+      }
+
+      const categoryIndex = categories.findIndex(
+        (category) => category.id === deletingCategoryId
+      );
+
+      if (categoryIndex !== -1) {
+        categories.splice(categoryIndex, 1);
+      }
+
+      const categoryOption = categoryFilter.querySelector(
+        `option[value="${deletingCategoryId}"]`
+      );
+
+      if (categoryOption) {
+        categoryOption.remove();
+      }
+
+      renderCategories();
+      break;
+    }
+
+    case "editCategory": {
+      const categoryIndex = categories.findIndex(
+        (category) => category.id === editingCategoryId
+      );
+
+      const updatedCategory = {
+        ...categories[categoryIndex],
+        name: document.querySelector("#categoryName").value.trim(),
+        description: document.querySelector("#categoryDescription").value.trim(),
+      };
+
+      const errors = [];
+
+      if (updatedCategory.name === "") {
+        errors.push("Category name is required.");
+      }
+
+      const categoryNameAlreadyExists = categories.some(
+        (category) =>
+          category.id !== editingCategoryId &&
+          category.name.trim().toLowerCase() ===
+            updatedCategory.name.toLowerCase()
+      );
+
+      if (categoryNameAlreadyExists) {
+        errors.push("Category name already exists.");
+      }
+
+      if (errors.length > 0) {
+        const formMessage = document.querySelector(".form-message");
+        formMessage.classList.add("error");
+        formMessage.style.display = "block";
+        formMessage.textContent = errors.join(" ");
+        return;
+      }
+
+      categories[categoryIndex] = updatedCategory;
+
+      const categoryOption = categoryFilter.querySelector(
+        `option[value="${updatedCategory.id}"]`
+      );
+      if (categoryOption) {
+        categoryOption.textContent = updatedCategory.name;
+      }
+
+      renderCategories();
+      renderProducts();
+      break;
+    }
+
+    case "category": {
+      const newCategory = {
+        id: categories.length + 1,
+        name: document.querySelector("#categoryName").value.trim(),
+        description: document.querySelector("#categoryDescription").value.trim(),
+        icon: "✳",
+        color: "#eef1f6",
+        ink: "#77849a",
+        count: 0,
+      }; 
+      const errors = [];
+
+      if (newCategory.name === "") {
+        errors.push("Category name is required.");
+      }
+
+      const categoryAlreadyExists = categories.some(
+        (category) =>
+          category.name.trim().toLowerCase() === newCategory.name.toLowerCase()
+      );
+
+      if (categoryAlreadyExists) {
+        errors.push("Category name already exists.");
+      }
+
+      if (errors.length > 0) {
+        const formMessage = document.querySelector(".form-message");
+        formMessage.classList.add("error");
+        formMessage.style.display = "block";
+        formMessage.textContent = errors.join(" ");
+        return;
+      }
+
+      categories.push(newCategory);
+      categoryFilter.add(new Option(newCategory.name, newCategory.id));
+      renderCategories();
       break;
     }
   }
