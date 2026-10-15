@@ -511,7 +511,8 @@ const modalContent = {
   transaction: {
     title: "Record a transaction",
     intro: "Record stock moving in or out of your inventory.",
-    fields: `<div class="field-grid"><div class="field"><label for="transactionType">Movement type</label><select id="transactionType"><option>Stock in</option><option>Stock out</option></select></div><div class="field"><label for="transactionProduct">Product</label><select id="transactionProduct"><option>Select a product</option>${products.map((product) => `<option>${product.name} · ${product.sku}</option>`).join("")}</select></div><div class="field"><label for="transactionQuantity">Quantity</label><input id="transactionQuantity" type="number" placeholder="Enter quantity"></div><div class="field"><label for="transactionReason">Reason</label><select id="transactionReason"><option>Select a reason</option><option>Purchase</option><option>Return</option><option>Sale</option><option>Damaged</option><option>Adjustment</option></select></div><div class="field full"><label for="transactionNote">Note <span style="font-weight:400;color:#9ba5b4">(optional)</span></label><textarea id="transactionNote" placeholder="Add context for this movement"></textarea></div></div>`,
+    fields: `<div class="field-grid"><div class="field"><label for="transactionType">Movement type</label><select id="transactionType"><option value="IN">Stock in</option><option value="OUT">Stock out</option></select></div><div class="field"><label for="transactionProduct">Product</label><select id="transactionProduct"><option value="">Select a product</option>${products.map((product) => 
+      `<option value="${product.id}">${product.name} · ${product.sku}</option>`).join("")}</select></div><div class="field"><label for="transactionQuantity">Quantity</label><input id="transactionQuantity" type="number" placeholder="Enter quantity"></div><div class="field"><label for="transactionReason">Reason</label><select id="transactionReason"><option value="">Select a reason</option><option>Purchase</option><option>Return</option><option>Sale</option><option>Damaged</option><option>Adjustment</option></select></div><div class="field full"><label for="transactionNote">Note <span style="font-weight:400;color:#9ba5b4">(optional)</span></label><textarea id="transactionNote" placeholder="Add context for this movement"></textarea></div></div>`,
   },
 };
 
@@ -785,6 +786,82 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
       renderCategories();
       break;
     }
+
+    case "transaction": {
+  const productIdInput = document.querySelector("#transactionProduct").value;
+  const quantityInput = document.querySelector("#transactionQuantity").value;
+  const reasonInput = document.querySelector("#transactionReason").value;
+  const now = new Date();
+
+  const newTransaction = {
+    id: transactions.length + 1,
+    productId: Number(productIdInput),
+    type: document.querySelector("#transactionType").value,
+    quantity: Number(quantityInput),
+    reason: reasonInput.trim(),
+    note: document.querySelector("#transactionNote").value.trim(),
+    date: now.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time: now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+  };
+
+  const selectedProduct = products.find(
+    (product) => product.id === newTransaction.productId
+  );
+
+  const errors = [];
+
+  if (!selectedProduct) {
+    errors.push("Please select a product.");
+  }
+
+  if (quantityInput.trim() === "") {
+    errors.push("Quantity is required.");
+  } else if (newTransaction.quantity <= 0) {
+    errors.push("Quantity must be greater than 0.");
+  } else if (!Number.isInteger(newTransaction.quantity)) {
+    errors.push("Quantity must be a whole number.");
+  }
+
+  if (reasonInput.trim() === "") {
+    errors.push("Reason is required.");
+  }
+
+  if (
+    selectedProduct &&
+    newTransaction.type === "OUT" &&
+    newTransaction.quantity > selectedProduct.quantity
+  ) {
+    errors.push("Not enough stock available.");
+  }
+
+  if (errors.length > 0) {
+    const formMessage = document.querySelector(".form-message");
+    formMessage.classList.add("error");
+    formMessage.style.display = "block";
+    formMessage.textContent = errors.join(" ");
+    return;
+  }
+
+  if (newTransaction.type === "IN") {
+    selectedProduct.quantity += newTransaction.quantity;
+  } else if (newTransaction.type === "OUT") {
+    selectedProduct.quantity -= newTransaction.quantity;
+  }
+
+  transactions.unshift(newTransaction);
+
+  renderTransactions();
+  renderDashboard();
+  renderProducts();
+  break;
+}
   }
 
   closeModal();
