@@ -788,80 +788,80 @@ document.querySelector("#previewForm").addEventListener("submit", (event) => {
     }
 
     case "transaction": {
-  const productIdInput = document.querySelector("#transactionProduct").value;
-  const quantityInput = document.querySelector("#transactionQuantity").value;
-  const reasonInput = document.querySelector("#transactionReason").value;
-  const now = new Date();
+      const productIdInput = document.querySelector("#transactionProduct").value;
+      const quantityInput = document.querySelector("#transactionQuantity").value;
+      const reasonInput = document.querySelector("#transactionReason").value;
+      const now = new Date();
 
-  const newTransaction = {
-    id: transactions.length + 1,
-    productId: Number(productIdInput),
-    type: document.querySelector("#transactionType").value,
-    quantity: Number(quantityInput),
-    reason: reasonInput.trim(),
-    note: document.querySelector("#transactionNote").value.trim(),
-    date: now.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }),
-    time: now.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    }),
-  };
+      const newTransaction = {
+        id: transactions.length + 1,
+        productId: Number(productIdInput),
+        type: document.querySelector("#transactionType").value,
+        quantity: Number(quantityInput),
+        reason: reasonInput.trim(),
+        note: document.querySelector("#transactionNote").value.trim(),
+        date: now.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        time: now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+        }),
+      };
 
-  const selectedProduct = products.find(
-    (product) => product.id === newTransaction.productId
-  );
+      const selectedProduct = products.find(
+        (product) => product.id === newTransaction.productId
+      );
 
-  const errors = [];
+      const errors = [];
 
-  if (!selectedProduct) {
-    errors.push("Please select a product.");
-  }
+      if (!selectedProduct) {
+        errors.push("Please select a product.");
+      }
 
-  if (quantityInput.trim() === "") {
-    errors.push("Quantity is required.");
-  } else if (newTransaction.quantity <= 0) {
-    errors.push("Quantity must be greater than 0.");
-  } else if (!Number.isInteger(newTransaction.quantity)) {
-    errors.push("Quantity must be a whole number.");
-  }
+      if (quantityInput.trim() === "") {
+        errors.push("Quantity is required.");
+      } else if (newTransaction.quantity <= 0) {
+        errors.push("Quantity must be greater than 0.");
+      } else if (!Number.isInteger(newTransaction.quantity)) {
+        errors.push("Quantity must be a whole number.");
+      }
 
-  if (reasonInput.trim() === "") {
-    errors.push("Reason is required.");
-  }
+      if (reasonInput.trim() === "") {
+        errors.push("Reason is required.");
+      }
 
-  if (
-    selectedProduct &&
-    newTransaction.type === "OUT" &&
-    newTransaction.quantity > selectedProduct.quantity
-  ) {
-    errors.push("Not enough stock available.");
-  }
+      if (
+        selectedProduct &&
+        newTransaction.type === "OUT" &&
+        newTransaction.quantity > selectedProduct.quantity
+      ) {
+        errors.push("Not enough stock available.");
+      }
 
-  if (errors.length > 0) {
-    const formMessage = document.querySelector(".form-message");
-    formMessage.classList.add("error");
-    formMessage.style.display = "block";
-    formMessage.textContent = errors.join(" ");
-    return;
-  }
+      if (errors.length > 0) {
+        const formMessage = document.querySelector(".form-message");
+        formMessage.classList.add("error");
+        formMessage.style.display = "block";
+        formMessage.textContent = errors.join(" ");
+        return;
+      }
 
-  if (newTransaction.type === "IN") {
-    selectedProduct.quantity += newTransaction.quantity;
-  } else if (newTransaction.type === "OUT") {
-    selectedProduct.quantity -= newTransaction.quantity;
-  }
+      if (newTransaction.type === "IN") {
+        selectedProduct.quantity += newTransaction.quantity;
+      } else if (newTransaction.type === "OUT") {
+        selectedProduct.quantity -= newTransaction.quantity;
+      }
 
-  transactions.unshift(newTransaction);
+      transactions.unshift(newTransaction);
 
-  renderTransactions();
-  renderDashboard();
-  renderProducts();
-  break;
-}
+      renderTransactions();
+      renderDashboard();
+      renderProducts();
+      break;
+    }
   }
 
   closeModal();
