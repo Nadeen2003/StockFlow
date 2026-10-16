@@ -566,6 +566,12 @@ td:first-child {
 .low-list {
   padding: 0 18px;
 }
+.low-empty {
+  padding: 18px 0;
+  color: #8792a6;
+  font-size: 11px;
+  text-align: center;
+}
 .low-item {
   display: flex;
   align-items: center;
@@ -648,6 +654,21 @@ td:first-child {
   color: #32a06c;
   font-size: 11px;
   font-weight: 700;
+}
+.bottom-note.warning {
+  border-color: #f2e4c4;
+  background: #fffaf0;
+  color: #87631b;
+}
+.bottom-note.warning .note-check {
+  background: #ffefcf;
+  color: #d08c1d;
+}
+.bottom-note.warning > span:nth-child(3) {
+  color: #b99857;
+}
+.bottom-note.warning .note-spark {
+  color: #d08c1d;
 }
 .note-spark {
   margin-left: auto;

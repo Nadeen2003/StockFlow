@@ -71,7 +71,7 @@
             <strong id="breadcrumbCurrent">Dashboard</strong>
           </div>
           <div class="top-actions">
-            <span class="today-label">Thursday, October 2</span
+            <span class="today-label" id="todayLabel">Thursday, October 2</span
             ><button
               class="icon-button notification"
               aria-label="Notifications"
@@ -86,7 +86,7 @@
             <div class="page-heading">
               <div>
                 <div class="eyebrow">OVERVIEW</div>
-                <h1>Good morning, Jordan <span class="wave">✳</span></h1>
+                <h1><span id="dashboardGreeting">Good morning</span> <span class="wave">✳</span></h1>
                 <p class="subheading">
                   Here’s what’s happening with your inventory today.
                 </p>
@@ -103,8 +103,7 @@
                 </div>
                 <div class="stat-value" id="dashboardTotalProducts">24</div>
                 <div class="stat-foot">
-                  <span class="trend up">↗ 12%</span
-                  ><span>from last month</span>
+                  <span class="trend neutral">Current</span><span>in your catalog</span>
                 </div>
               </article>
               <article class="stat-card">
@@ -117,8 +116,7 @@
                   <small>units</small>
                 </div>
                 <div class="stat-foot">
-                  <span class="trend up">↗ 8.2%</span
-                  ><span>from last month</span>
+                  <span class="trend neutral">Live total</span><span>across all products</span>
                 </div>
               </article>
               <article class="stat-card">
@@ -134,8 +132,7 @@
                   >
                 </div>
                 <div class="stat-foot">
-                  <span class="trend up">↗ 4.6%</span
-                  ><span>from last month</span>
+                  <span class="trend neutral">Current value</span><span>at listed prices</span>
                 </div>
               </article>
               <article class="stat-card">
@@ -193,8 +190,10 @@
               </section>
             </div>
             <div class="bottom-note">
-              <span class="note-check">✓</span> Your inventory is looking good.
-              <span>Keep it flowing.</span><span class="note-spark">✳</span>
+              <span class="note-check">✓</span>
+              <span id="dashboardInventoryStatus">Your inventory is looking good.</span>
+              <span id="dashboardInventoryHint">Keep it flowing.</span>
+              <span class="note-spark">✳</span>
             </div>
           </section>
           <section class="page" id="page-products">

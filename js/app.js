@@ -194,21 +194,52 @@ let transactionCurrentPage = 1;
 const transactionsPerPage = 6;
 
 function renderDashboard() {
-  document.querySelector("#dashboardTotalProducts").textContent = products.length;
-  document.querySelector("#recentRows").innerHTML = transactions
-    .slice(0, 4)
-    .map((transaction) => {
-      const product = productFor(transaction.productId);
-      return `<tr><td>${productCell(product)}</td><td>${typePill(transaction.type)}</td><td class="${transaction.type === "IN" ? "qty-in" : "qty-out"}">${transaction.type === "IN" ? "+" : "−"}${transaction.quantity} units</td><td class="date-cell">${transaction.date}</td></tr>`;
-    })
-    .join("");
+  document.querySelector("#todayLabel").textContent = new Date().toLocaleDateString(
+    "en-US", 
+    { weekday: "long", month: "long", day: "numeric" }
+  );
+  const currentHour = new Date().getHours();
+  let greeting;
 
-    
+  if (currentHour < 12) {
+    greeting = "Good morning";
+  } else if (currentHour < 18) {
+    greeting = "Good afternoon";
+  } else {
+    greeting = "Good evening";
   }
+
+document.querySelector("#dashboardGreeting").textContent = greeting;
+  document.querySelector("#dashboardTotalProducts").textContent = products.length;
+  const recentTransactions = transactions.slice(0, 4);
+  const recentRows = document.querySelector("#recentRows");
+
+  if (recentTransactions.length === 0) {
+    recentRows.innerHTML =
+      '<tr><td colspan="4">No transactions yet.</td></tr>';
+  } else {
+    recentRows.innerHTML = recentTransactions
+      .map((transaction) => {
+        const product = productFor(transaction.productId);
+        return `<tr><td>${productCell(product)}</td><td>${typePill(transaction.type)}</td><td class="${transaction.type === "IN" ? "qty-in" : "qty-out"}">${transaction.type === "IN" ? "+" : "−"}${transaction.quantity} units</td><td class="date-cell">${transaction.date}</td></tr>`;
+      })
+      .join("");
+  }
+}
   
 function renderLowStockList() {
-  document.querySelector("#lowStockList").innerHTML = products
-    .filter((product) => product.quantity <= 5)
+  const lowStockProducts = products.filter(
+    (product) => product.quantity <= 5
+  );
+  const lowStockList = document.querySelector("#lowStockList");
+
+  if (lowStockProducts.length === 0) {
+    lowStockList.innerHTML =
+      '<div class="low-empty">No products need restocking.</div>';
+    return;
+  }
+
+  lowStockList.innerHTML = lowStockProducts
     .map(
       (product) => `
       <div class="low-item"><span class="product-thumb" style="background:${product.color || "#98d1e8"}">${product.icon || "📦"}</span><div class="low-product"><strong>${product.name}</strong><span>${product.sku}</span><div class="stock-track"><i style="width:${Math.max(product.quantity * 8, 8)}%"></i></div></div><div class="low-qty"><strong>${product.quantity} left</strong><span>Low stock</span></div></div>`,
@@ -224,13 +255,28 @@ function renderProducts() {
   const lowStockCount = products.filter(
     (product) => product.quantity <= 5
   ).length;
+  const statusMessage = document.querySelector("#dashboardInventoryStatus");
+  const hintMessage = document.querySelector("#dashboardInventoryHint");
+
+  if (lowStockCount === 0) {
+    document.querySelector(".bottom-note").classList.remove("warning");
+    document.querySelector(".note-check").textContent = "✓";
+    statusMessage.textContent = "Your inventory is looking good.";
+    hintMessage.textContent = "No items need restocking.";
+  } else {
+    document.querySelector(".bottom-note").classList.add("warning");
+    document.querySelector(".note-check").textContent = "!";
+    statusMessage.textContent = "Some products need restocking.";
+    hintMessage.textContent = `${lowStockCount} ${
+      lowStockCount === 1 ? "item needs" : "items need"
+    } attention.`;
+  }
   document.querySelector("#dashboardLowStockCount").textContent = lowStockCount;
   const totalInventoryValue = products.reduce((sum, product) => sum + product.price * product.quantity, 0);
   const [wholeValue, centsValue] = totalInventoryValue.toFixed(2).split(".");
   document.querySelector("#dashboardInventoryWhole").textContent = Number(wholeValue).toLocaleString("en-US");
   document.querySelector("#dashboardInventoryCents").textContent = `.${centsValue}`;
-  document.querySelector("#lowStockCountPill").textContent = `${lowStockCount} items`;
-  renderLowStockList();
+  document.querySelector("#lowStockCountPill").textContent = `${lowStockCount} ${lowStockCount === 1 ? "item" : "items"}`;  renderLowStockList();
   const searchTerm = document.querySelector("#productSearch").value.trim().toLowerCase();
   const selectedCategoryId = document.querySelector("#productCategoryFilter").value;
   const filteredProducts = products.filter((product) => {
