@@ -664,6 +664,40 @@ td:first-child {
   padding: 14px 19px;
   border-bottom: 1px solid var(--line);
 }
+.transaction-date-filters {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  padding: 12px 19px;
+  border-bottom: 1px solid var(--line);
+}
+.transaction-date-filters[hidden] {
+  display: none;
+}
+.transaction-date-filters label {
+  display: grid;
+  gap: 5px;
+  color: #59657b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.transaction-date-filters input {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #e7eaf0;
+  border-radius: 7px;
+  color: #67748a;
+  background: white;
+}
+.transaction-date-filters button {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #e5e9f0;
+  border-radius: 7px;
+  color: #657187;
+  background: white;
+  cursor: pointer;
+}
 .search-box {
   height: 36px;
   width: min(310px, 45%);

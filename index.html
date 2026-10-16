@@ -296,17 +296,33 @@
                   ><span>⌕</span
                   ><input
                     type="search"
+                    id="transactionSearch"
                     placeholder="Search transactions..."
                     aria-label="Search transactions" /></label
                 ><label class="select-wrap"
                   ><span class="sr-only">Filter by type</span
-                  ><select>
-                    <option>All movements</option>
-                    <option>Stock in</option>
-                    <option>Stock out</option>
+                  ><select id="transactionTypeFilter">
+                    <option value="">All movements</option>
+                    <option value="IN">Stock in</option>
+                    <option value="OUT">Stock out</option>
                   </select></label
-                ><button class="button button-outline">
+                ><button class="button button-outline" id="transactionDateRangeButton">
                   ▤ <span>Date range</span>
+                </button>
+              </div>
+              <div id="transactionDateFilters" class="transaction-date-filters" hidden>
+                <label>
+                  From
+                  <input type="date" id="transactionDateFrom" />
+                </label>
+
+                <label>
+                  To
+                  <input type="date" id="transactionDateTo" />
+                </label>
+
+                <button type="button" id="clearTransactionDateFilter">
+                  Clear dates
                 </button>
               </div>
               <div class="table-scroll">
@@ -325,10 +341,10 @@
               </div>
               <div class="table-footer">
                 <span
-                  >Showing <strong>6</strong> of
-                  <strong>38</strong> transactions</span
+                  >Showing <strong id="transactionsShown">6</strong> of
+                  <strong id="transactionsTotal">38</strong> transactions</span
                 >
-                <div class="pagination">
+                <div class="pagination" id="transactionPagination">
                   <button disabled>←</button><button class="current">1</button
                   ><button>2</button><button>3</button><button>→</button>
                 </div>

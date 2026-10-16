@@ -190,6 +190,8 @@ const typePill = (type) =>
 let sortDirection = 0;
 let currentPage = 1;
 const productsPerPage = 6;
+let transactionCurrentPage = 1;
+const transactionsPerPage = 6;
 
 function renderDashboard() {
   document.querySelector("#dashboardTotalProducts").textContent = products.length;
@@ -362,6 +364,37 @@ function renderPagination(totalPages) {
 }
 
 document.querySelector("#productSearch").addEventListener("input", renderProducts);
+document.querySelector("#transactionSearch").addEventListener("input", () => {
+  transactionCurrentPage = 1;
+  renderTransactions();
+});
+
+document.querySelector("#transactionTypeFilter").addEventListener("change", () => {
+  transactionCurrentPage = 1;
+  renderTransactions();
+});
+
+document.querySelector("#transactionDateRangeButton").addEventListener("click", () => {
+  const dateFilters = document.querySelector("#transactionDateFilters");
+  dateFilters.hidden = !dateFilters.hidden;
+});
+
+document.querySelector("#transactionDateFrom").addEventListener("change", () => {
+  transactionCurrentPage = 1;
+  renderTransactions();
+});
+
+document.querySelector("#transactionDateTo").addEventListener("change", () => {
+  transactionCurrentPage = 1;
+  renderTransactions();
+});
+
+document.querySelector("#clearTransactionDateFilter").addEventListener("click", () => {
+  document.querySelector("#transactionDateFrom").value = "";
+  document.querySelector("#transactionDateTo").value = "";
+  transactionCurrentPage = 1;
+  renderTransactions();
+});
 
 categoryFilter.addEventListener("change", renderProducts);
 
@@ -375,12 +408,79 @@ document.querySelector("#productSortButton").addEventListener("click", () => {
 });
 
 function renderTransactions() {
-  document.querySelector("#transactionRows").innerHTML = transactions
-    .map((transaction) => {
-      const product = productFor(transaction.productId);
-      return `<tr><td>${productCell(product)}</td><td>${typePill(transaction.type)}</td><td class="${transaction.type === "IN" ? "qty-in" : "qty-out"}">${transaction.type === "IN" ? "+" : "−"}${transaction.quantity} units</td><td>${transaction.reason}</td><td class="date-cell">${transaction.date} <span class="product-meta">${transaction.time}</span></td></tr>`;
-    })
-    .join("");
+  const searchTerm = document.querySelector("#transactionSearch").value.trim().toLowerCase();
+  const selectedType = document.querySelector("#transactionTypeFilter").value;
+  const fromValue = document.querySelector("#transactionDateFrom").value;
+  const toValue = document.querySelector("#transactionDateTo").value;
+
+  const startDate = fromValue ? new Date(`${fromValue}T00:00:00`) : null;
+  const endDate = toValue ? new Date(`${toValue}T23:59:59.999`) : null;
+  const filteredTransactions = transactions.filter((transaction) => { 
+    const product = productFor(transaction.productId);
+    const transactionDate = new Date(transaction.date);
+    return (
+      (product.name.toLowerCase().includes(searchTerm) ||
+        product.sku.toLowerCase().includes(searchTerm)) &&
+      (selectedType === "" || transaction.type === selectedType) &&
+      (!startDate || transactionDate >= startDate) &&
+      (!endDate || transactionDate <= endDate)
+    );
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / transactionsPerPage));
+
+  if (transactionCurrentPage > totalPages) {
+    transactionCurrentPage = totalPages;
+  }
+
+  const startIndex = (transactionCurrentPage - 1) * transactionsPerPage;
+  const visibleTransactions = filteredTransactions.slice(
+    startIndex,
+    startIndex + transactionsPerPage
+  );
+
+  document.querySelector("#transactionsShown").textContent = visibleTransactions.length;
+  document.querySelector("#transactionsTotal").textContent = filteredTransactions.length;
+
+  document.querySelector("#transactionRows").innerHTML =
+    visibleTransactions.length === 0
+      ? '<tr><td colspan="5">No transactions found.</td></tr>'
+      : visibleTransactions
+          .map((transaction) => {
+            const product = productFor(transaction.productId);
+            return `<tr><td>${productCell(product)}</td><td>${typePill(transaction.type)}</td><td class="${transaction.type === "IN" ? "qty-in" : "qty-out"}">${transaction.type === "IN" ? "+" : "−"}${transaction.quantity} units</td><td>${transaction.reason}</td><td class="date-cell">${transaction.date} <span class="product-meta">${transaction.time}</span></td></tr>`;
+          })
+          .join("");
+  
+  const pagination = document.querySelector("#transactionPagination");
+
+  let buttons = `
+    <button data-transaction-page="${transactionCurrentPage - 1}"
+      ${transactionCurrentPage === 1 ? "disabled" : ""}>←</button>
+  `;
+
+  for (let page = 1; page <= totalPages; page++) {
+    buttons += `
+      <button
+        data-transaction-page="${page}"
+        class="${page === transactionCurrentPage ? "current" : ""}"
+      >${page}</button>
+    `;
+  }
+
+  buttons += `
+    <button data-transaction-page="${transactionCurrentPage + 1}"
+      ${transactionCurrentPage === totalPages ? "disabled" : ""}>→</button>
+  `;
+
+  pagination.innerHTML = buttons;
+
+  pagination.querySelectorAll("[data-transaction-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      transactionCurrentPage = Number(button.dataset.transactionPage);
+      renderTransactions();
+    });
+  });
 }
 
 function renderCategories() {
