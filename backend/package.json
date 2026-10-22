@@ -1,0 +1,19 @@
+{
+  "name": "stockflow-api",
+  "version": "0.1.0",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "keywords": [
+    "stockflow",
+    "inventory",
+    "api",
+    "backend"
+  ],
+  "author": "Nadeen Hassania",
+  "license": "ISC",
+  "private": true,
+  "description": "Backend API for the StockFlow inventory management app."
+}
