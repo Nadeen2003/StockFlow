@@ -1,6 +1,14 @@
 import { createServer } from "node:http";
 const server = createServer(( req, res) => {
-    res.end("StockFlow API is running");
+    const { url, method } = req;
+    if (url === "/api/health" && method === "GET") {
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ status: "ok" }));
+        return;
+    }
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({ message: "StockFlow API is running" }));
+    
 });
 
 server.listen(3000, () => {
