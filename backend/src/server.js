@@ -30,8 +30,10 @@ const server = createServer(( req, res) => {
         return;
     }
 
+
+    res.statusCode = 404;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ message: "StockFlow API is running" }));
+    res.end(JSON.stringify({ message: "Route not found" }));
     
 });
 
