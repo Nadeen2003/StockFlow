@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-
+import { sendJson } from "./utils/sendJson.js";
 const products = [
   {
     id: 1,
@@ -19,21 +19,16 @@ const server = createServer(( req, res) => {
     const { url, method } = req;
 
     if (url === "/api/health" && method === "GET") {
-        res.setHeader("Content-Type", "application/json");
-        res.end(JSON.stringify({ status: "ok" }));
-        return;
+      sendJson(res, 200, { status: "ok" });
+      return;
     }
 
     if(url === "/api/products" && method === "GET"){
-        res.setHeader("content-Type", "application/json");
-        res.end(JSON.stringify(products));
-        return;
+      sendJson(res, 200, products);
+      return;
     }
 
-
-    res.statusCode = 404;
-    res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ message: "Route not found" }));
+    sendJson(res, 404, { message: "Route not found" });
     
 });
 
